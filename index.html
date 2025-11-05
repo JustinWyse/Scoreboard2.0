@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scoreboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link rel="stylesheet" href="styles.css?v=front2024-dark-calendar" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div class="loading-overlay" id="loading" style="display: none;">
+      <div>
+        <div class="loading"></div>
+        <p style="margin-top: 16px;">Loading dashboard data...</p>
+      </div>
+    </div>
+
+    <header>
+      <div class="brand">
+        <h1>Scoreboard</h1>
+        <div class="subtitle">Performance tracking and analytics dashboard.</div>
+      </div>
+    </header>
+
+    <section class="filter-group">
+      <h3>Scoreboard Controls</h3>
+      <div id="controls">
+        <label>Date from: <input type="date" id="date_from"></label>
+        <label>Date to: <input type="date" id="date_to"></label>
+        <label>Group by: <select id="group_by">
+          <option value="week">Week</option>
+          <option value="day">Day</option>
+          <option value="month">Month</option>
+        </select></label>
+        <label>Instructor: <select id="instr_select"><option value="">All</option></select></label>
+        <div class="facility-toggles">
+          <label>Facilities:</label>
+          <div id="facility_toggles" class="toggle-group"></div>
+        </div>
+        <label>Category: <select id="cat_level1"><option value="">All Categories</option></select></label>
+        <button id="apply_filter">Apply Filters</button>
+        <button id="reset">Reset</button>
+        <button id="show_all_cats">Show All Categories</button>
+      </div>
+    </section>
+
+
+    <main>
+      <div id="error_display" class="error" style="display: none;"></div>
+      <div id="success_display" class="success" style="display: none;"></div>
+
+      <!-- KPI Dashboard Section -->
+      <section class="dashboard-section">
+        <div class="section-header">
+          <h2>Key Performance Indicators</h2>
+        </div>
+        <div id="kpis" class="kpis"></div>
+      </section>
+
+      <div class="export-controls">
+        <button class="export-btn" id="export_csv">📊 Export Data (CSV)</button>
+        <button class="export-btn" id="export_json">💾 Export Data (JSON)</button>
+      </div>
+
+      <!-- Performance Analytics Section -->
+      <section class="dashboard-section">
+        <div class="section-header">
+          <h2>Performance Analytics</h2>
+        </div>
+        <div id="charts">
+          <div id="ts_chart" class="chart full-width"></div>
+
+          <div class="chart-group">
+            <h3 class="chart-group-title">Instructor Performance</h3>
+            <div id="bar_chart" class="chart"></div>
+            <div id="low_performing_chart" class="chart"></div>
+          </div>
+
+          <!-- Category Breakdown Section - Right Side -->
+          <div class="chart-group">
+            <h3 class="chart-group-title">Category Breakdown</h3>
+            <div id="category_pie_chart" class="chart"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Class Performance Section -->
+      <section class="dashboard-section">
+        <div class="section-header">
+          <h2>Class Performance</h2>
+        </div>
+        <div id="charts-section2">
+          <div class="chart-group">
+            <h3 class="chart-group-title">Class Performance</h3>
+            <div id="top_classes_chart" class="chart"></div>
+            <div id="low_performing_classes_chart" class="chart"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Facility Performance Section -->
+      <section class="dashboard-section">
+        <div class="section-header">
+          <h2>Facility Performance</h2>
+        </div>
+        <div id="charts-section3">
+          <div class="chart-group">
+            <h3 class="chart-group-title">Facility Performance</h3>
+            <div id="fac_chart" class="chart"></div>
+            <div id="fac_avg_chart" class="chart"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="filter-group">
+        <h3>Data Table</h3>
+        <div class="filter-row">
+          <label>Show rows: <select id="table_rows">
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="200" selected>200</option>
+            <option value="500">500</option>
+          </select></label>
+          <label><input type="text" id="table_search" placeholder="Search data..."></label>
+        </div>
+        <div class="table-container">
+          <div id="table_html"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="category_analysis.js?v=front2024"></script>
+    <script src="app.js?v=front2024-debug"></script>
+  </body>
+</html>
