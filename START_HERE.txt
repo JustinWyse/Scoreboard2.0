@@ -1,0 +1,24 @@
+================================================
+START HERE - QUICK INSTRUCTIONS
+================================================
+
+UPLOAD THESE 3 FILES TO GITHUB:
+✅ app.js
+✅ index.html  
+✅ styles.css
+
+WHAT'S FIXED:
+✅ Show All Categories button
+✅ Calendar icon alignment
+✅ Time series updates with Group By dropdown
+✅ Category breakdown - Larger pie chart + NEW bar chart
+✅ Tons of UI improvements
+
+HOW TO UPLOAD:
+1. Go to https://github.com/JustinWyse/Scoreboard2.0
+2. Delete old versions of these 3 files
+3. Upload new versions from this folder
+4. Wait 2 minutes for Streamlit to redeploy
+
+READ THE FULL "🎉 UPGRADE GUIDE.txt" FOR DETAILS!
+================================================
