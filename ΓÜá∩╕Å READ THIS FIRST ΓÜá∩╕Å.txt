@@ -1,0 +1,22 @@
+⚠️⚠️⚠️  CRITICAL REMINDER  ⚠️⚠️⚠️
+
+YOU NEED ONE MORE FILE!
+
+data.json.gz
+
+This file is NOT included in this folder because you need 
+the LATEST version from your computer!
+
+WHERE TO GET IT:
+📂 Go to: Desktop\front_dashboard_final\data.json.gz
+
+This is the file you just created when you ran UPDATE_DATA.bat
+It has 43,274 rows (your latest data)
+
+WHAT TO DO:
+1. Upload all files from THIS folder to GitHub
+2. Then ALSO upload data.json.gz from your desktop folder
+
+WITHOUT THIS FILE, YOUR DASHBOARD WILL NOT WORK!
+
+⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️

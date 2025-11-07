@@ -1,0 +1,108 @@
+========================================
+GITHUB UPLOAD CHECKLIST
+========================================
+
+📁 WHAT'S IN THIS FOLDER:
+All the files you need to upload to GitHub for your Scoreboard dashboard.
+
+========================================
+🚀 UPLOAD INSTRUCTIONS
+========================================
+
+OPTION 1 - Upload ALL files at once (EASIEST):
+1. Go to: https://github.com/JustinWyse/Scoreboard2.0
+2. Click "Add file" → "Upload files"
+3. Drag ALL files from this folder into GitHub
+4. Click "Commit changes"
+5. Wait 1-2 minutes for Streamlit to redeploy
+
+OPTION 2 - Replace just the data file:
+1. Go to: https://github.com/JustinWyse/Scoreboard2.0
+2. Click on "data.json.gz"
+3. Click trash icon to delete it
+4. Go back to main page
+5. Click "Add file" → "Upload files"
+6. Upload ONLY the data.json.gz from your local folder:
+   Desktop\front_dashboard_final\data.json.gz
+7. Click "Commit changes"
+
+========================================
+📋 FILES YOU NEED TO UPLOAD
+========================================
+
+REQUIRED FILES (Must upload these):
+✅ streamlit_app.py          - Main app
+✅ index.html                - Dashboard HTML
+✅ styles.css                - Styling
+✅ app.js                    - JavaScript
+✅ category_analysis.js      - Category functions
+✅ category_aliases.json     - Category mappings
+✅ requirements.txt          - Python dependencies
+✅ README.md                 - Documentation
+✅ .gitignore                - Git ignore rules
+
+HELPER FILES (Nice to have):
+✅ UPDATE_DATA.bat           - Batch file to update data
+✅ update_data.py            - Python conversion script
+✅ QUICK_START.md            - Quick start guide
+
+DATA FILE (MOST IMPORTANT):
+❗ data.json.gz              - YOUR DASHBOARD DATA
+   ⚠️  UPLOAD FROM YOUR LOCAL FOLDER, NOT FROM HERE!
+   📂 Location: Desktop\front_dashboard_final\data.json.gz
+   
+   This file is NOT in this folder because you need the 
+   LATEST version with 43,274 rows from your local folder.
+
+========================================
+⚠️  IMPORTANT NOTES
+========================================
+
+1. DO NOT upload "data.json.gz" from this folder!
+   Use the one from: Desktop\front_dashboard_final\data.json.gz
+   (The one you just created with UPDATE_DATA.bat)
+
+2. After uploading, Streamlit Cloud takes 1-2 minutes to redeploy
+
+3. Check your dashboard at your Streamlit Cloud URL
+
+4. The record count should show 43,274 (or your latest count)
+
+========================================
+🔧 TROUBLESHOOTING
+========================================
+
+Dashboard won't load:
+- Check that ALL files were uploaded
+- Check that data.json.gz is the NEW version
+- Wait 2 minutes for Streamlit to finish deploying
+
+Wrong data showing:
+- You uploaded the wrong data.json.gz
+- Upload the one from: Desktop\front_dashboard_final\data.json.gz
+
+Files look weird on GitHub:
+- Some files (like .gitignore) might be hidden
+- That's normal - they're still there
+
+========================================
+✅ VERIFICATION
+========================================
+
+After uploading, verify:
+1. All files show "just now" or today's date on GitHub
+2. Streamlit dashboard loads without errors
+3. Record count matches your expected number
+4. Data looks correct when you filter
+
+========================================
+📞 NEED HELP?
+========================================
+
+If something isn't working:
+1. Check that you uploaded data.json.gz from your LOCAL folder
+2. Wait 2 minutes for Streamlit to redeploy
+3. Hard refresh your browser (Ctrl+Shift+R)
+4. Check Streamlit Cloud deployment logs for errors
+
+========================================
