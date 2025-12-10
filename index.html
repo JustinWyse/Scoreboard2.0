@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scoreboard - Version 3.1</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link rel="stylesheet" href="styles.css?v=front2024-v31" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div class="loading-overlay" id="loading" style="display: none;">
+      <div>
+        <div class="loading"></div>
+        <p style="margin-top: 16px;">Loading dashboard data...</p>
+      </div>
+    </div>
+
+    <header>
+      <div class="brand">
+        <h1>Scoreboard - Version 3.1</h1>
+        <div class="subtitle">✨ New in 3.1: Multi-category comparison (up to 3), YoY chart visualization, 2-year comparison option, verified math, and collapsible sections! Fixed SOMA duplicates & improved filters. Verify data in RGP when possible.</div>
+      </div>
+    </header>
+
+    <!-- Quick Start Guide -->
+    <div class="intro-banner" id="intro_banner">
+      <div class="intro-content">
+        <h4>👋 Quick Start Guide - Version 3.1</h4>
+        <p>Welcome to Scoreboard 3.1! Here's what's new:</p>
+        <ul>
+          <li><strong>Multi-Category Comparison:</strong> Select up to 3 categories to compare side-by-side</li>
+          <li><strong>Year-over-Year Charts:</strong> Enable YoY to see comparison lines in performance graphs</li>
+          <li><strong>Side-by-Side Pie Charts:</strong> YoY comparison now shows current vs prior year pie charts</li>
+          <li><strong>2-Year Comparison:</strong> Compare with 2 years ago instead of 1 year</li>
+          <li><strong>Collapsible Sections:</strong> Click section headers to expand/collapse</li>
+        </ul>
+        <button onclick="document.getElementById('intro_banner').style.display='none'" class="dismiss-btn">Got it, hide this</button>
+      </div>
+    </div>
+
+    <section class="filter-group">
+      <h3>Scoreboard Controls</h3>
+      <div id="controls">
+        <label>📅 Date from: <input type="date" id="date_from"></label>
+        <label>📅 Date to: <input type="date" id="date_to"></label>
+        
+        <label class="comparison-toggle" style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="checkbox" id="compare_year_over_year" style="width: 18px; height: 18px;">
+          <span>📊 Compare 1 Year Ago</span>
+        </label>
+        
+        <label class="comparison-toggle" style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="checkbox" id="compare_two_years_ago" style="width: 18px; height: 18px;">
+          <span>📊 Compare 2 Years Ago</span>
+        </label>
+        
+        <label>📊 Group by: <select id="group_by">
+          <option value="week">Week</option>
+          <option value="day">Day</option>
+          <option value="month">Month</option>
+        </select></label>
+        
+        <label>👤 Instructor: <select id="instr_select"><option value="">All</option></select></label>
+        
+        <div class="facility-toggles">
+          <label>🏢 Facilities:</label>
+          <div id="facility_toggles" class="toggle-group"></div>
+        </div>
+        
+        <!-- NEW: Multi-Category Comparison -->
+        <div class="category-comparison" style="grid-column: 1 / -1;">
+          <label style="display: block; margin-bottom: 0.75rem; color: var(--front-text-secondary); font-size: 0.875rem; font-weight: 600;">
+            📂 Compare Categories (select up to 3):
+          </label>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <label>Category 1: <select id="category_compare_1"><option value="">None</option></select></label>
+            <label>Category 2: <select id="category_compare_2"><option value="">None</option></select></label>
+            <label>Category 3: <select id="category_compare_3"><option value="">None</option></select></label>
+          </div>
+        </div>
+        
+        <button id="apply_filter">✓ Apply Filters</button>
+        <button id="reset">↻ Reset All</button>
+      </div>
+    </section>
+
+
+    <main>
+      <div id="error_display" class="error" style="display: none;"></div>
+      <div id="success_display" class="success" style="display: none;"></div>
+
+      <!-- KPI Dashboard Section -->
+      <section class="dashboard-section">
+        <div class="section-header">
+          <h2>Key Performance Indicators</h2>
+        </div>
+        <div id="kpis" class="kpis section-content"></div>
+      </section>
+
+      <div class="export-controls">
+        <button class="export-btn" id="export_csv">📊 Export Data (CSV)</button>
+        <button class="export-btn" id="export_json">💾 Export Data (JSON)</button>
+      </div>
+
+      <!-- Performance Analytics Section -->
+      <section class="dashboard-section">
+        <div class="section-header">
+          <h2>Performance Analytics</h2>
+        </div>
+        <div id="charts" class="section-content">
+          <div id="ts_chart" class="chart full-width"></div>
+
+          <div class="chart-group">
+            <h3 class="chart-group-title">Instructor Performance</h3>
+            <div id="bar_chart" class="chart"></div>
+            <div id="low_performing_chart" class="chart"></div>
+          </div>
+
+          <!-- Category Breakdown Section - Right Side -->
+          <div class="chart-group">
+            <h3 class="chart-group-title">Category Breakdown</h3>
+            <div id="category_pie_chart" class="chart"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Class Performance Section -->
+      <section class="dashboard-section">
+        <div class="section-header">
+          <h2>Class Performance</h2>
+        </div>
+        <div id="charts-section2" class="section-content">
+          <div class="chart-group">
+            <h3 class="chart-group-title">Class Performance</h3>
+            <div id="top_classes_chart" class="chart"></div>
+            <div id="low_performing_classes_chart" class="chart"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Facility Performance Section -->
+      <section class="dashboard-section">
+        <div class="section-header">
+          <h2>Facility Performance</h2>
+        </div>
+        <div id="charts-section3" class="section-content">
+          <div class="chart-group">
+            <h3 class="chart-group-title">Facility Performance</h3>
+            <div id="fac_chart" class="chart"></div>
+            <div id="fac_avg_chart" class="chart"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DATA TABLE SECTION REMOVED as requested -->
+
+    </main>
+
+    <script src="category_analysis.js?v=front2024-v31"></script>
+    <script src="app.js?v=front2024-v31"></script>
+  </body>
+</html>
