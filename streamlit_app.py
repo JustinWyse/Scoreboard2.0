@@ -7,14 +7,22 @@ Scoreboard 3.0 Dashboard
 - Verified YoY math (exact same date range comparisons)
 - Collapsible sections for focused analysis
 - Improved data quality and filter responsiveness
+- BigQuery integration for live data (new in 3.1)
 """
 
 import streamlit as st
 import json
 import gzip
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
+
+# BigQuery integration
+try:
+    from bigquery_client import BigQueryClient, get_client_from_streamlit_secrets, get_client_from_file
+    BIGQUERY_AVAILABLE = True
+except ImportError:
+    BIGQUERY_AVAILABLE = False
 
 # Page configuration
 st.set_page_config(
@@ -80,17 +88,52 @@ def check_access():
         st.info("💡 Hint: Check with your administrator for access")
         st.stop()
 
-@st.cache_data(ttl=60)  # Cache for 1 minute
-def load_dashboard_data():
-    """Load data from available locations and get file info"""
+@st.cache_data(ttl=86400)  # Cache for 24 hours
+def load_data_from_bigquery():
+    """Load data from BigQuery with 24-hour cache."""
+    try:
+        # Try Streamlit secrets first (for Streamlit Cloud)
+        if hasattr(st, 'secrets') and 'gcp_service_account' in st.secrets:
+            client = get_client_from_streamlit_secrets(st.secrets)
+        else:
+            # Try local credentials file
+            local_creds_paths = [
+                "credentials/bigquery-service-account copy.json",
+                "credentials/bigquery-service-account.json",
+                "bigquery-service-account.json"
+            ]
+            client = None
+            for creds_path in local_creds_paths:
+                if Path(creds_path).exists():
+                    client = get_client_from_file(creds_path)
+                    break
+
+            if client is None:
+                return None, "No BigQuery credentials found", None
+
+        # Fetch data from instructor_view
+        data = client.fetch_instructor_view()
+
+        if data:
+            return data, "bigquery:analytics_raw.instructor_view", datetime.now()
+        else:
+            return None, "BigQuery returned no data", None
+
+    except Exception as e:
+        return None, f"BigQuery error: {str(e)}", None
+
+
+@st.cache_data(ttl=60)  # Cache for 1 minute (file-based fallback)
+def load_data_from_file():
+    """Load data from local files (fallback)."""
     possible_paths = [
         "data.json.gz",
-        "data_json.gz", 
+        "data_json.gz",
         "local_dashboard/data.json.gz",
         "data.json",
         "local_dashboard/data.json"
     ]
-    
+
     for path in possible_paths:
         file_path = Path(path)
         if file_path.exists():
@@ -101,16 +144,45 @@ def load_dashboard_data():
                 else:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         data = json.load(f)
-                
+
                 # Get file modification timestamp
                 file_mtime = os.path.getmtime(file_path)
                 file_timestamp = datetime.fromtimestamp(file_mtime)
-                
-                return data, path, file_timestamp
+
+                return data, f"file:{path}", file_timestamp
             except Exception as e:
                 continue
-    
-    return [], None, None
+
+    return None, "No data files found", None
+
+
+def load_dashboard_data(use_bigquery=True, force_refresh=False):
+    """
+    Load data from BigQuery or file fallback.
+
+    Args:
+        use_bigquery: Whether to try BigQuery first
+        force_refresh: Force cache clear and reload
+
+    Returns:
+        Tuple of (data, source, timestamp)
+    """
+    if force_refresh:
+        # Clear caches
+        load_data_from_bigquery.clear()
+        load_data_from_file.clear()
+
+    # Try BigQuery first if available and requested
+    if use_bigquery and BIGQUERY_AVAILABLE:
+        data, source, timestamp = load_data_from_bigquery()
+        if data:
+            return data, source, timestamp
+        # BigQuery failed, log the error
+        st.session_state['bigquery_error'] = source
+
+    # Fallback to file
+    data, source, timestamp = load_data_from_file()
+    return data, source, timestamp
 
 def load_file_content(filename):
     """Load HTML/CSS/JS files"""
@@ -140,44 +212,95 @@ def deduplicate_data(data):
 def main():
     """Main application"""
     check_access()
-    
+
+    # Initialize session state
+    if 'use_bigquery' not in st.session_state:
+        st.session_state.use_bigquery = True
+    if 'force_refresh' not in st.session_state:
+        st.session_state.force_refresh = False
+
     # Sidebar - FIRST
     st.sidebar.title("📊 Scoreboard")
-    st.sidebar.markdown("### Version 3.0")
+    st.sidebar.markdown("### Version 3.1")
     st.sidebar.markdown("---")
-    
+
+    # Data source toggle
+    st.sidebar.markdown("### Data Source")
+
+    if BIGQUERY_AVAILABLE:
+        use_bigquery = st.sidebar.toggle(
+            "Use BigQuery (Live)",
+            value=st.session_state.use_bigquery,
+            help="Toggle between live BigQuery data and local file"
+        )
+        st.session_state.use_bigquery = use_bigquery
+    else:
+        st.sidebar.warning("BigQuery not available")
+        use_bigquery = False
+
+    # Refresh button
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        if st.button("🔄 Refresh", use_container_width=True, help="Clear cache and reload data"):
+            st.session_state.force_refresh = True
+            st.rerun()
+
     # Load data
-    raw_data, data_path, file_timestamp = load_dashboard_data()
-    
+    force_refresh = st.session_state.get('force_refresh', False)
+    if force_refresh:
+        st.session_state.force_refresh = False
+
+    raw_data, data_source, data_timestamp = load_dashboard_data(
+        use_bigquery=use_bigquery,
+        force_refresh=force_refresh
+    )
+
     # Deduplicate data
     if raw_data:
         data = deduplicate_data(raw_data)
     else:
         data = []
-    
+
     # Data info in sidebar
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### Data Status")
+
     if data:
-        st.sidebar.success("✅ Data Loaded Successfully")
-        
+        # Show source indicator
+        if data_source and data_source.startswith("bigquery:"):
+            st.sidebar.success("🔗 Connected to BigQuery")
+            source_display = data_source.replace("bigquery:", "")
+        elif data_source and data_source.startswith("file:"):
+            st.sidebar.info("📁 Using Local File")
+            source_display = data_source.replace("file:", "")
+        else:
+            source_display = data_source or "Unknown"
+
         # Show metrics
         col1, col2 = st.sidebar.columns(2)
         with col1:
             st.metric("Raw Records", f"{len(raw_data):,}")
         with col2:
             st.metric("Unique", f"{len(data):,}")
-        
-        # Show file info
-        if data_path:
-            st.sidebar.caption(f"📁 {data_path}")
-        
-        # Show REAL file timestamp
-        if file_timestamp:
-            st.sidebar.caption(f"📅 Data last updated: {file_timestamp.strftime('%Y-%m-%d %I:%M %p')}")
+
+        # Show source info
+        st.sidebar.caption(f"📊 {source_display}")
+
+        # Show timestamp
+        if data_timestamp:
+            st.sidebar.caption(f"📅 Updated: {data_timestamp.strftime('%Y-%m-%d %I:%M %p')}")
+
+        # Show BigQuery error if any
+        if 'bigquery_error' in st.session_state and not data_source.startswith("bigquery:"):
+            with st.sidebar.expander("⚠️ BigQuery Status", expanded=False):
+                st.warning(st.session_state['bigquery_error'])
     else:
         st.sidebar.error("❌ No Data Found")
-        st.error("Data file not found. Run UPDATE_DATA.bat to generate data.json.gz")
+        if 'bigquery_error' in st.session_state:
+            st.error(f"BigQuery: {st.session_state['bigquery_error']}")
+        st.error("No data available. Check BigQuery connection or run UPDATE_DATA.bat for local file.")
         st.stop()
-    
+
     # Control buttons
     st.sidebar.markdown("---")
     

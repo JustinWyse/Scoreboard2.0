@@ -1,0 +1,36 @@
+# Credentials - NEVER commit these
+credentials/
+*.json
+!package.json
+!category_aliases.json
+
+# Service account keys
+*service-account*.json
+*-credentials.json
+
+# Streamlit secrets (local development)
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.env
+
+# Data files (large)
+*.gz
+*.xlsx
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
